@@ -12,7 +12,7 @@ class Model
   end
 
   def build_solution_array
-    @blank_solution = Array.new << Array.new(4,:open) << Array.new(4,:open) << Array.new(5,:open) << Array.new(6,:open)
+    @blank_solution = Array.new << Array.new(5,:open) << Array.new(4,:open) << Array.new(4,:open) << Array.new(6,:open)
   end
 
   def build_possible_partners_for_each_name
@@ -23,7 +23,8 @@ class Model
 
   def calculate_groups
     delete_prior_pairs_from_possibles
-    find_recursive_solution(@list, @blank_solution)
+    @list.delete(:jon)
+    find_recursive_solution([:jon] + @list.shuffle, @blank_solution)
   end
 
   def delete_prior_pairs_from_possibles
@@ -36,30 +37,32 @@ class Model
   def find_recursive_solution(working_list, working_solution)
     if within_constraints?(working_solution)
       return working_solution unless working_solution.flatten.include?(:open)
-    else
-      return
     end
     working_list.each do |name|
       replaced = false
       working_solution.each_with_index do |team,index|
         if team.include?(:open) && !replaced
           working_solution[index][team.find_index(:open)] = name
-          replaced = true
+            if within_constraints?(working_solution)
+              replaced = true
+              p working_solution
+            else
+              working_solution[index][team.find_index(name)] = :open
+            end
         end
       end
     # p working_solution
-      find_recursive_solution(working_list - [name], working_solution)
+      return find_recursive_solution(working_list - [name], working_solution)
     end
   end
 
   def within_constraints?(possible_solution)
     possible_solution.each do |group|
-p possible_solution
-      allowed_conflicts = (group.size == 5) ? 0 : group.size - 4
+      allowed_conflicts = (group.size == 5) ? 1 : group.size - 3
       group_members = [] + group
       group_members.delete(:open)
       group_members.each do |member|
-        p "Hello from #{member} inside constraints"
+        (group - names[member] - [:open]).size <= allowed_conflicts
         return false unless (group_members - names[member]).size <= allowed_conflicts
       end
     end
@@ -85,3 +88,61 @@ p possible_solution
   attr_accessor :groups
 
 end
+=begin
+
+[[:michael, :ovi, :eran, :bernice, :open], [:bill, :brian, :walter, :jon], [:natasha, :amaar, :shawn, :fatma], [:nilt, :abe, :karla, :mia, :greg, :trevor]]
+[[:amaar, :shawn, :eran, :michael, :tal], [:bernice, :jon, :trevor, :bill], [:karla, :greg, :brian, :open], [:mia, :abe, :nilt, :walter, :fatma, :natasha]]
+natasha
+bernice
+greg
+ovi
+trevor
+
+Team 1:
+amaar
+karla
+tal
+eran
+
+Team 2:
+brian
+bill
+walter
+jon
+
+Team 3:
+fatma
+mia
+shawn
+nilt
+
+Team 0:
+jon
+bill
+nilt
+trevor
+bernice
+
+Team 1:
+shawn
+eran
+mia
+walter
+
+Team 2:
+abe
+michael
+amaar
+fatma
+
+Team 3:
+natasha
+ovi
+karla
+greg
+tal
+brian
+
+
+
+=end
