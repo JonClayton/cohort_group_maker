@@ -23,7 +23,7 @@ class Model
 
   def calculate_groups
     delete_prior_pairs_from_possibles
-    solution = find_recursive_solution(@list, @blank_solution)
+    find_recursive_solution(@list, @blank_solution)
   end
 
   def delete_prior_pairs_from_possibles
@@ -34,7 +34,6 @@ class Model
   end
 
   def find_recursive_solution(working_list, working_solution)
-    p working_solution
     if within_constraints?(working_solution)
       return working_solution unless working_solution.flatten.include?(:open)
     else
@@ -48,16 +47,19 @@ class Model
           replaced = true
         end
       end
+    # p working_solution
       find_recursive_solution(working_list - [name], working_solution)
     end
   end
 
   def within_constraints?(possible_solution)
     possible_solution.each do |group|
-      allowed_conflicts = (group.size == 5) ? 1 : group.size - 3
+p possible_solution
+      allowed_conflicts = (group.size == 5) ? 0 : group.size - 4
       group_members = [] + group
       group_members.delete(:open)
-      group.each do |member|
+      group_members.each do |member|
+        p "Hello from #{member} inside constraints"
         return false unless (group_members - names[member]).size <= allowed_conflicts
       end
     end
@@ -75,7 +77,7 @@ class Model
   # end
 
   def send_groups
-    calculate_groups
+    p calculate_groups
   end
 
   private
